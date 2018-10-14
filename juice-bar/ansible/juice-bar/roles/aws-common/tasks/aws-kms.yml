@@ -1,0 +1,8 @@
+---
+
+- name: "AWS KMS: Create the KMS key"
+  local_kms_key:
+    name: "volume_key"
+    state: present
+  register: aws_common_kms_volume_key
+

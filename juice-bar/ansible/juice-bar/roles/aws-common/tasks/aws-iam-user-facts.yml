@@ -1,0 +1,11 @@
+---
+
+- name: "AWS IAM User Facts: Find the current AWS account facts"
+  local_iam_user_facts:
+  register: aws_common_iam_user
+  check_mode: no
+  
+- name: "AWS IAM User Facts: Find the current AWS account id"
+  set_fact:
+    aws_common_account_id: "{{ aws_common_iam_user['result']['arn'] | regex_replace('^arn:aws:iam::([0-9]+):.*', '\\1') }}"
+  check_mode: no

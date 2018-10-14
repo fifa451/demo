@@ -1,0 +1,42 @@
+---
+
+- name: "AWS VPC: preview collected VPC facts"
+  debug: var=aws_common_vpc_facts
+
+
+- name: "AWS VPC: Create VPC and Subnet"
+  ec2_vpc_net:
+    state: present
+    name: "{{ aws_vpc_name }}"
+    cidr_block: "{{ aws_vpc_cidr }}"
+    region: "{{ aws_common_region }}"
+    multi_ok: no
+    tags:
+      Name: "{{ aws_vpc_name }}"
+      Ansible: "Ansible"
+      ENV: "{{ aws_common_inventory }}"
+      REGION: "{{ aws_common_region }}"
+  register: aws_vpc_facts
+
+# - name: "AWS VPC: preview the VPC details"
+#   debug: var=aws_vpc_facts
+
+
+- name: "AWS VPC: Get Main Route Table Facts"
+  ec2_vpc_route_table_facts:
+    filters:
+      vpc-id: "{{ aws_vpc_facts.vpc.id }}"
+      'association.main': 'true'
+    # region: "{{ aws_common_region }}"
+  register: aws_vpc_routetable
+  check_mode: no
+
+
+- name: "AWS VPC: Tag Main Route Table"
+  ec2_tag:
+    resource: "{{ aws_vpc_routetable.route_tables.0.id }}"
+    tags:
+      Name: "{{ aws_vpc_name }}"
+      Ansible: "Ansible"
+      ENV: "{{ aws_common_inventory }}"
+      REGION: "{{ aws_common_region }}"

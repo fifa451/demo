@@ -1,0 +1,11 @@
+---
+
+- include: roles/aws-common/tasks/aws-vpc-facts.yml
+
+- name: "AWS IGW Facts: Get the IGW facts"
+  ec2_vpc_igw:
+    vpc_id: "{{ aws_common_vpc_facts.id }}"
+    region: "{{ aws_common_region }}"
+    state: present
+  register: aws_common_igw_facts
+  when: aws_common_igw_facts ==''

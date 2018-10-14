@@ -1,0 +1,36 @@
+---
+aws_subnets:
+
+# DEV vpc 10.0.0.0/16
+### public
+
+  - name: DEV-public-a
+    cidr: 10.0.0.0/24
+    az: ap-southeast-2a
+    tag_az: A
+
+  - name: DEV-public-b
+    cidr: 10.0.100.0/24
+    az: ap-southeast-2b
+    tag_az: B
+
+  - name: DEV-public-c
+    cidr: 10.0.200.0/24
+    az: ap-southeast-2c
+    tag_az: C
+
+###private
+  - name: DEV-private-a
+    cidr: 10.0.1.0/24
+    az: ap-southeast-2a
+    tag_az: A
+
+  - name: DEV-private-b
+    cidr: 10.0.101.0/24
+    az: ap-southeast-2b
+    tag_az: B
+
+  - name: DEV-private-c
+    cidr: 10.0.201.0/24
+    az: ap-southeast-2c
+    tag_az: C

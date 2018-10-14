@@ -1,0 +1,18 @@
+---
+
+- name: Set up AWS  VPC infrastructure
+  hosts: aws-vpc
+  roles:
+    - 'aws-vpc'
+  environment:
+    AWS_DEFAULT_REGION: "{{ aws_common_region }}"
+    # AWS_PROFILE: "{{ aws_common_profile }}"
+
+
+- name: Set up AWS SUBNE infrastructure
+  hosts: aws-subnets
+  roles:
+    - 'aws-subnets'
+  environment:
+    AWS_DEFAULT_REGION: "{{ aws_common_region }}"
+    # AWS_PROFILE: "{{ aws_common_profile }}"

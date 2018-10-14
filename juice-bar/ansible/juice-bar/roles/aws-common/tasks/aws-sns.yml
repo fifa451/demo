@@ -1,0 +1,21 @@
+---
+
+- name: "AWS SNS: Create alarm SNS topic"
+  sns_topic:
+    name: "ansible-sns-alarms"
+    state: present
+    display_name: "Ansible Alarms"
+    delivery_policy:
+      http:
+        defaultHealthyRetryPolicy:
+          minDelayTarget: 20
+          maxDelayTarget: 20
+          numRetries: 5
+          numMaxDelayRetries: 5
+          backoffFunction: "linear"
+        disableSubscriptionOverrides: false
+        defaultThrottlePolicy:
+          maxReceivesPerSecond: 10
+    subscriptions: "{{ aws_common_alarm_subscriptions }}"
+  register: aws_common_sns_alarm
+  run_once: Yes

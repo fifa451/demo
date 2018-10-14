@@ -1,0 +1,53 @@
+---
+aws_subnets:
+
+# PROD vpc 10.1.0.0/16
+### public, 0,100,200
+
+  - name: PROD-public-a
+    cidr: 10.1.0.0/24
+    az: ap-southeast-2a
+    tag_az: A
+
+  - name: PROD-public-b
+    cidr: 10.1.100.0/24
+    az: ap-southeast-2b
+    tag_az: B
+
+  - name: PROD-public-c
+    cidr: 10.1.200.0/24
+    az: ap-southeast-2c
+    tag_az: C
+
+###private, 1,101,201
+  - name: PROD-private-a
+    cidr: 10.1.1.0/24
+    az: ap-southeast-2a
+    tag_az: A
+
+  - name: PROD-private-b
+    cidr: 10.1.101.0/24
+    az: ap-southeast-2b
+    tag_az: B
+
+  - name: PROD-private-c
+    cidr: 10.1.201.0/24
+    az: ap-southeast-2c
+    tag_az: C
+
+#### peer, 2,102,202
+
+  - name: PROD-peer-a
+    cidr: 10.1.2.0/24
+    az: ap-southeast-2a
+    tag_az: A
+
+  - name: PROD-peer-b
+    cidr: 10.1.102.0/24
+    az: ap-southeast-2b
+    tag_az: B
+
+  - name: PROD-peer-c
+    cidr: 10.1.202.0/24
+    az: ap-southeast-2c
+    tag_az: C

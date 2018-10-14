@@ -1,0 +1,9 @@
+aws_common_inventory: PROD
+aws_common_region: "ap-southeast-2"
+aws_vpc_cidr: '10.1.0.0/16'
+aws_vpc_name: "{{ aws_common_inventory | upper }}"
+tags:
+  Name: "{{ aws_vpc_name }}"
+  Ansible: "Ansible"
+  ENV: "{{ aws_common_inventory }}"
+  REGION: "{{ aws_common_region }}"

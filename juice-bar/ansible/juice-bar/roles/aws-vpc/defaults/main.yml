@@ -1,0 +1,3 @@
+---
+# defaults file for aws-vpc
+# aws_vpc_name: "{{ aws_common_inventory | upper }}"

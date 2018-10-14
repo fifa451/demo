@@ -1,0 +1,4 @@
+aws_common_inventory: DEV
+aws_common_region: "ap-southeast-2"
+aws_vpc_cidr: '10.0.0.0/16'
+aws_vpc_name: "{{ aws_common_inventory | upper }}"

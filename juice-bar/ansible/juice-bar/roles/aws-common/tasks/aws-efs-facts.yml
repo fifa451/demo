@@ -1,0 +1,18 @@
+---
+
+- name: "AWS EFS Facts: Get EFS Facts"
+  efs_facts:
+  register: aws_common_efs_results
+  when: aws_common_efs_facts == ''
+  check_mode: no
+
+- debug: var=aws_common_efs_results
+
+- name: "AWS EFS Facts: Resolve EFS Data"
+  set_fact: 
+    aws_common_efs_facts: "{{ aws_common_efs_results.ansible_facts.efs }}"
+  when: aws_common_efs_facts == ''
+  check_mode: no
+
+- debug: var=aws_common_efs_facts
+

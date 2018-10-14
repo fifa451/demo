@@ -1,0 +1,17 @@
+---
+
+- name: "AWS RDS Facts: Get RDS Facts"
+  cs_rds_facts:
+  register: aws_common_rds_results
+  when: aws_common_rds_facts == ''
+  check_mode: no
+
+- debug: var=aws_common_rds_results
+
+- name: "AWS RDS Facts: Resolve RDS Data"
+  set_fact: 
+    aws_common_rds_facts: "{{ aws_common_rds_results.db_instances }}"
+  when: aws_common_rds_facts == ''
+  check_mode: no
+
+- debug: var=aws_common_rds_facts

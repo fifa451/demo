@@ -1,0 +1,17 @@
+---
+
+- name: "AWS VPC Facts: Get VPC Facts"
+  ec2_vpc_net_facts:
+    region: "{{ aws_common_region }}"
+    filters:
+      "tag:Name": "{{ aws_vpc_name }}"
+  register: aws_common_vpc_results
+  when: aws_common_vpc_facts is not defined
+  check_mode: no
+
+- name: "AWS VPC Facts: Resolve VPC Data"
+  set_fact:
+    aws_common_vpc_facts: "{{ aws_common_vpc_results.vpcs.0 }}"
+  when: aws_common_vpc_facts is not defined
+  check_mode: no
+

@@ -1,0 +1,30 @@
+---
+# vars file for awscommon
+
+# Store the VPC facts
+aws_common_vpc_results: ''
+aws_common_vpc_facts: ''
+
+# Store the igw facts
+aws_common_igw_facts: ''
+
+# Store the KMS Key facts
+aws_common_kms_volume_key_facts: ''
+
+# Store the SNS alarm facts
+aws_common_sns_alarm_facts: ''
+
+# Store the IAM user facts
+aws_common_account_id: ''
+aws_common_iam_user: ''
+
+# Store ACM certificate facts
+aws_common_certificate_facts: '' 
+
+# Store the EFS facts
+aws_common_efs_results: ''
+aws_common_efs_facts: ''
+
+# Store the RDS facts
+aws_common_rds_results: ''
+aws_common_rds_facts: ''

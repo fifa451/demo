@@ -1,0 +1,5 @@
+---
+# tasks file for awscommon
+
+# - name: Include Shared inventory files
+  # include_vars: "inventory-common/group_vars/all/vars.yml"

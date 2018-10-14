@@ -1,0 +1,36 @@
+---
+aws_subnets:
+
+# PEER vpc 10.3.0.0/16
+### public
+
+  - name: PEER-public-a
+    cidr: 10.3.0.0/24
+    az: ap-southeast-2a
+    tag_az: A
+
+  - name: PEER-public-b
+    cidr: 10.3.100.0/24
+    az: ap-southeast-2b
+    tag_az: B
+
+  - name: PEER-public-c
+    cidr: 10.3.200.0/24
+    az: ap-southeast-2c
+    tag_az: C
+
+###private
+  - name: PEER-private-a
+    cidr: 10.3.1.0/24
+    az: ap-southeast-2a
+    tag_az: A
+
+  - name: PEER-private-b
+    cidr: 10.3.101.0/24
+    az: ap-southeast-2b
+    tag_az: B
+
+  - name: PEER-private-c
+    cidr: 10.3.201.0/24
+    az: ap-southeast-2c
+    tag_az: C

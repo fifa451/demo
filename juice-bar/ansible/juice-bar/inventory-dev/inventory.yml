@@ -1,0 +1,6 @@
+---
+[aws-vpc]
+aws_vpc ansible_connection=local
+
+[aws-subnets]
+aws_subnets ansible_connection=local

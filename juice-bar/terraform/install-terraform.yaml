@@ -1,0 +1,30 @@
+- hosts: localhost
+  gather_facts: no
+  become: yes
+
+  tasks:
+    - name: "get terraform latest version"
+      uri:
+        url: "https://releases.hashicorp.com/terraform"
+        method: GET
+        return_content: yes
+      register: uri_output
+      check_mode: no
+
+    - set_fact:
+        terraform_ver: "{{ uri_output.content | regex_findall(ver_regex) | first }}"
+      vars:
+        ver_regex: '<a href=\"/terraform/([\d\.]+)/'
+
+    - debug: var=terraform_ver
+
+    - name: "Download Terraform"
+      get_url:
+        url: https://releases.hashicorp.com/terraform/{{ terraform_ver }}/terraform_{{ terraform_ver }}_linux_amd64.zip
+        dest: /usr/local/src/terraform_{{ terraform_ver }}_linux_amd64.zip
+
+    - name: "Extract and install Terraform"
+      unarchive:
+        src: /usr/local/src/terraform_{{ terraform_ver }}_linux_amd64.zip
+        dest: /usr/local/bin
+        copy: no

@@ -1,0 +1,27 @@
+---
+
+#aws_common_domain_name
+- name: "AWS ACM Certificate Facts:  List ACM Certificates"
+  shell: 'aws acm list-certificates --output json'
+  register: aws_common_certificate_list
+  changed_when: false
+  check_mode: no
+
+- name: "AWS ACM Certificate Facts: Import results"
+  set_fact:
+    aws_common_certificate_list: "{{ aws_common_certificate_list.stdout | from_json }}"
+    aws_common_certificate_facts: []
+  check_mode: no
+  
+- debug: var=aws_common_certificate_list
+
+- name: "AWS ACM Certificate Facts: Filter list"
+  set_fact:
+    aws_common_certificate_facts:
+      domain_name: "{{ cert_item.DomainName }}"
+      arn: "{{ cert_item.CertificateArn }}"
+  when: cert_item.DomainName == aws_common_domain_name
+  with_items: "{{ aws_common_certificate_list.CertificateSummaryList }}"
+  loop_control:
+    loop_var: cert_item
+  check_mode: no

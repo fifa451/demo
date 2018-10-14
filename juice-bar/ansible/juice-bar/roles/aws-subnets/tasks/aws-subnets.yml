@@ -1,0 +1,15 @@
+---
+
+- name: "AWS Subnets: Create {{ item.name }} subnet"
+  ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{ aws_common_vpc_facts.id }}"
+    cidr: "{{ item.cidr }}"
+    region: "{{ aws_common_region }}"
+    az: "{{ item.az }}"
+    resource_tags:
+      Name: "{{ item.name }}"
+      Ansible: "Ansible"
+      ENV: "{{ aws_common_inventory }}"
+      REGION: "{{ aws_common_region }}"
+      AZ: "{{ item.tag_az }}"
