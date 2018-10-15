@@ -1,0 +1,21 @@
+---
+
+- name: "AWS EC2 Alarms: Create CPU Credit Alarm"
+  ec2_metric_alarm:
+    state: present
+    name: "EC2 {{ include_item.role }} CPU credit balance"
+    metric: CPUCreditBalance
+    namespace: AWS/EC2
+    statistic: Average
+    comparison: "<"
+    threshold: 20.0
+    period: 300
+    evaluation_periods: 2
+    description: EC2 CPU Credit alarm via Ansible
+    dimensions: {'InstanceId': "{{ aws_ec2_instances_result.tagged_instances.0.id }}"}
+    alarm_actions:
+      - "{{ aws_common_sns_alarm['sns_arn'] }}"
+    ok_actions:
+      - "{{ aws_common_sns_alarm['sns_arn'] }}"
+  when: (aws_common_create_alarms == True) and (include_item.instance_type | match("^t2."))
+

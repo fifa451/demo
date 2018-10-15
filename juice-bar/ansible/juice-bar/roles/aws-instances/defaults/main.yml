@@ -1,0 +1,13 @@
+---
+# defaults file for aws-instances
+aws_ec2_instances_key_name: "rchen-key"
+aws_ec2_ami_selection: "ami-0789a5fb42dcccc10"
+
+aws_ec2_instances_ami_map:
+  ubuntu_16:
+    ami_name: "" # use the prebuild golden AMI
+    user_data: |
+      #!/bin/bash
+      apt-get update
+      apt-get install -y python python-simplejson
+    encrypt: yes

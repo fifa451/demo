@@ -1,0 +1,120 @@
+---
+
+### Get VPC ID
+- name: "Get PROD VPC ID"
+  ec2_vpc_net_facts:
+    filters:
+      "tag:Name": PROD
+  register: aws_prod_vpc_id
+
+
+- name: "Get DEV VPC ID"
+  ec2_vpc_net_facts:
+    filters:
+      "tag:Name": DEV
+  register: aws_dev_vpc_id
+
+
+- name: "Get PEER VPC ID"
+  ec2_vpc_net_facts:
+    filters:
+      "tag:Name": PEER
+  register: aws_peer_vpc_id
+
+
+# Setup peering between the peering vpc and the live VPC (which are in the same account)
+- name: Create VPC peering Connection between peering VPC and Live VPC
+  ec2_vpc_peer:
+    region: "{{ aws_common_region }}"
+    vpc_id: "{{ aws_peer_vpc_id.vpcs.0.vpc_id }}"
+    peer_vpc_id: "{{ aws_prod_vpc_id.vpcs.0.vpc_id }}"
+    state: present
+    tags:
+      Name: 'VPC-PERR-PROD'
+      Ansible: "Ansible"
+  register: vpc_peer_prod
+
+
+- name: Accept VPC peering Connection between peering VPC and PROD VPC
+  ec2_vpc_peer:
+    region: "{{ aws_common_region }}"
+    peering_id: "{{ vpc_peer_prod.peering_id }}"
+    state: accept
+    tags:
+      Name: 'VPC-PERR-PROD'
+      Ansible: "Ansible"
+  register: action_peer_prod
+
+
+- name: Create VPC peering Connection between peering VPC and DEV VPC
+  ec2_vpc_peer:
+    region: "{{ aws_common_region }}"
+    vpc_id: "{{ aws_peer_vpc_id.vpcs.0.vpc_id }}"
+    peer_vpc_id: "{{ aws_dev_vpc_id.vpcs.0.vpc_id }}"
+    state: present
+    tags:
+      Name: 'VPC-PERR-DEV'
+      Ansible: "Ansible"
+  register: vpc_peer_dev
+
+
+- name: Accept VPC peering Connection between peering VPC and DEV VPC
+  ec2_vpc_peer:
+    region: "{{ aws_common_region }}"
+    peering_id: "{{ vpc_peer_dev.peering_id }}"
+    state: accept
+    tags:
+      Name: 'VPC-PERR-DEV'
+      Ansible: "Ansible"
+  register: action_peer_dev
+
+
+
+# # TODO update the security group in the revieving VPC to allow all traffic from the peering VPC (10.4.0.0/16)
+# #  - i.e. add it to the 'All Servers' security froup for the receiving VPC
+
+
+# - name: gather facts about the peering VPC
+#   ec2_vpc_route_table_facts:
+#     filters:
+#       vpc-id: "{{ aws_peering_vpc_id }}"
+#   register: peering_vpc_facts
+
+# - name: output the info we collected about the vpc peering connection
+#   debug:
+#       var: peering_vpc_facts
+# #      var: peering_vpc_facts.route_tables.0.vpc_id
+
+
+# # Setup peering between the peering VPC and the dev VPC (which are under different accounts)
+# - name: Create VPC peering Connection between peering VPC and Dev VPC
+#   ec2_vpc_peer:
+#     region: "{{ aws_common_region }}"
+#     vpc_id: "{{ aws_peering_vpc_id }}"
+#     peer_vpc_id: "{{ aws_dev_vpc_id }}"
+#     peer_owner_id: "{{ aws_dev_vpc_owner }}"
+#     state: present
+# # TODO - adding tags fails for some reason!
+#     tags:
+#       Name: 'Peering to Dev VPC'
+#       Ansible: "Ansible"
+#   register: vpc_peer_dev
+
+# - name: VPC peering Connection between peering VPC and Dev VPC
+#   ec2_vpc_peer:
+#     region: "{{ aws_common_region }}"
+#     peering_id: "{{ vpc_peer_dev.peering_id }}"
+#    # profile: bot03_profile_for_cross_account
+#     state: accept
+#     tags:
+#       Name: 'Peering to Dev VPC'
+#       Ansible: "Ansible"
+#   register: action_peer_dev
+#   environment:
+#     AWS_PROFILE: "dev"
+
+# - name: Reset the AWS credentials back to the default
+#   debug:
+#     msg: "Reset the AWS credentials back to the default"
+#   environment:
+#     AWS_PROFILE: "{{ aws_common_profile }}"

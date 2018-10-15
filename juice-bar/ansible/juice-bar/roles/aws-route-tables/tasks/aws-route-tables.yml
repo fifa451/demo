@@ -1,0 +1,35 @@
+---
+
+- name: "Get all {{ aws_common_inventory }} subnet id "
+  ec2_vpc_subnet_facts:
+    filters:
+      "tag:ENV": "{{ aws_common_inventory }}"
+  register: aws_subnets_results
+
+
+- name: "AWS Route Talbes: GET  Subnet"
+  set_fact:
+    aws_route_tables_public_subnets: "{{ aws_subnets_results.subnets|json_query('[].subnet_id')}}"
+
+
+- name: "AWS Route Tables: Build routes"
+  set_fact:
+    aws_route_tables_routes:
+      - dest: "{{ aws_common_vpc_facts.cidr_block }}"
+        gateway_id: local
+      - dest: 0.0.0.0/0
+        gateway_id: "{{ aws_common_igw_facts.gateway_id }}"
+
+
+- name: "AWS Route Tables: Public route table association"
+  ec2_vpc_route_table:
+    vpc_id: "{{ aws_common_vpc_facts.id }}"
+    region: "{{ aws_common_region }}"
+    subnets: "{{ aws_route_tables_public_subnets }}"
+    routes: "{{ aws_route_tables_routes }}"
+    tags:
+      Name: "{{ aws_vpc_name }}-route-table"
+      Ansible: "Ansible"
+      Inventory: "{{ aws_common_inventory }}"
+      ENV: "{{ aws_common_inventory }}"
+      REGION: "{{ aws_common_region }}"

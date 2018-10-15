@@ -1,0 +1,22 @@
+---
+
+- name: "AWS: VPC ID"
+  include_tasks: roles/aws-common/tasks/aws-vpc-facts.yml
+
+- name: "AWS IGW: create igw"
+  ec2_vpc_igw:
+    vpc_id: "{{ aws_common_vpc_facts.id }}"
+    region: "{{ aws_common_region }}"
+    state: present
+  register: aws_igw
+
+
+- name: "AWS IGW: Name the new internet gateway created"
+  ec2_tag:
+    resource: "{{ aws_igw.gateway_id }}"
+    state: present
+    region: "{{ aws_common_region }}"
+    tags:
+      Name: "{{ aws_vpc_name }} gateway"
+      Ansible: "Ansible"
+      Inventory: "{{ aws_common_inventory }}"

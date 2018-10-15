@@ -9,10 +9,50 @@
     # AWS_PROFILE: "{{ aws_common_profile }}"
 
 
-- name: Set up AWS SUBNE infrastructure
+- name: Set up AWS SUBNET infrastructure
   hosts: aws-subnets
   roles:
     - 'aws-subnets'
   environment:
     AWS_DEFAULT_REGION: "{{ aws_common_region }}"
     # AWS_PROFILE: "{{ aws_common_profile }}"
+
+
+- name: Set up AWS VPC-PEERING infrastructure
+  hosts: aws-vpc-peering
+  roles:
+    - 'aws-vpc-peering'
+  environment:
+    AWS_DEFAULT_REGION: "{{ aws_common_region }}"
+    # AWS_PROFILE: "{{ aws_common_profile }}"
+
+
+- name: Set up AWS IGW infrastructure
+  hosts: aws-igw
+  roles:
+    - 'aws-igw'
+  environment:
+    AWS_DEFAULT_REGION: "{{ aws_common_region }}"
+
+
+- name: Set up AWS route tables
+  hosts: aws-route-tables
+  roles:
+    - 'aws-route-tables'
+  environment:
+    AWS_DEFAULT_REGION: "{{ aws_common_region }}"
+
+
+- name: Set up AWS Security Groups
+  hosts: aws-security-groups
+  roles:
+    - 'aws-security-groups'
+  environment:
+    AWS_DEFAULT_REGION: "{{ aws_common_region }}"
+
+- name: Set up juice bars
+  hosts: juice-bar
+  roles:
+    - 'aws-instances'
+  environment:
+    AWS_DEFAULT_REGION: "{{ aws_common_region }}"

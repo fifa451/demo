@@ -1,0 +1,132 @@
+---
+
+# - include: aws-ec2-ami-selection.yml
+
+
+- include: aws-ec2-security-groups.yml
+
+
+- include: aws-ec2-iam-role.yml
+
+
+- include: aws-ec2-subnet.yml
+
+
+- name: "AWS EC2 Instances: Create EC2 instance for {{ include_item.name }} in {{ include_item.subnet }}"
+  ec2:
+    key_name: "{{ aws_ec2_instances_key_name }}"
+    instance_type: "{{ include_item.instance_type }}"
+    image: "{{ aws_ec2_ami_selection }}"
+    exact_count: "{{ include_item.count | default(1) }}"
+    count_tag:
+      CountTag: "{{ include_item.name }}_{{ include_item.subnet }}"
+    wait: yes
+    wait_timeout: 500
+    vpc_subnet_id: "{{ aws_ec2_instances_subnet }}"
+    assign_public_ip: "{{ include_item.assign_public_ip | regex_replace('^([0-9i\\.]+)$','yes') | regex_replace('^(?!yes)$','no') }}"
+    group_id: "{{ aws_ec2_sg_list }}"
+    instance_profile_name: "{{ aws_common_inventory }}-ec2-{{ include_item.product }}"
+    user_data: "{{ aws_ec2_instances_ami_map[include_item.os]['user_data'] }}"
+    volumes:
+      - device_name: /dev/sda1
+        volume_type: gp2
+        volume_size: "{{ include_item.primary_hdd_size | default(10) }}"
+    instance_tags:
+        Name: "{{ include_item.name }}"
+        Ansible: Ansible
+        ENV: "{{ aws_common_inventory }}"
+        REGION: "{{ aws_common_region }}"
+        AZ: "{{ include_item.az }}"
+        PRODUCT: "{{ include_item.product }}"
+
+  register: aws_ec2_instances_result
+
+# - name: "AWS EC2 Instances: Enable Unlimited CPU Credit Specification"
+#   local_ec2_credit_specification:
+#     id: "{{ item.id }}"
+#     credit_specification: 'unlimited'
+#   when: (aws_ec2_instances_result.changed) and (include_item.instance_type | match("^t2."))
+#   with_items: "{{ aws_ec2_instances_result.tagged_instances }}"
+
+- name: "AWS EC2 Instances: Get volume information"
+  ec2_vol_facts:
+    filters:
+      "attachment.device": "/dev/sda1"
+  register: aws_ec2_instances_volumes
+  check_mode: no
+
+
+- name: "EC2: Enable backup tags"
+  set_fact:
+    aws_volume_tags:
+      Ansible: 'Ansible'
+      Inventory: "{{ aws_common_inventory }}"
+      Backup: 'Yes'
+      ENV: "{{ aws_common_inventory }}"
+      REGION: "{{ aws_common_region }}"
+      AZ: "{{ include_item.az }}"
+      PRODUCT: "{{ include_item.product }}"
+  when: aws_ec2_instances_backup_volumes
+  check_mode: no
+
+#- debug: var=aws_ec2_instances_volumes
+#- debug: var=include_item
+#- debug: var=aws_volume_tags
+
+
+- name: "AWS EC2 Instances: Tag root volume"
+  ec2_tag:
+    region: "{{ aws_common_region }}"
+    resource: "{{ aws_ec2_instances_volumes.volumes.0.id }}"
+    state: present
+    tags: "{{ aws_volume_tags | combine({'Name': include_item.name + ' root volume' }) }}"
+
+
+# Note that assign_public_ip in the config can be bool, but if an IP is specified it will try to allocate that specific one
+- name: "AWS EC2 Instances: Allocating elastic IP to instance"
+  ec2_eip:
+    in_vpc: yes
+    reuse_existing_ip_allowed: yes
+    state: present
+    device_id: "{{ aws_ec2_instances_result.tagged_instances[0].id }}"
+    public_ip: "{{ include_item.assign_public_ip | regex_replace('^(.(?![0-9.]+))+$','') }}"
+  register: aws_ec2_instances_eip
+  when: include_item.assign_public_ip
+
+
+- name: "AWS EC2 Instances: Report elastic IP"
+  debug: msg="{{ aws_ec2_instances_eip.public_ip }}"
+  when: include_item.assign_public_ip
+
+
+# The Ansible ec2 module only sets security groups on new instances
+# This custom module will update them on existing instances
+# - name: "AWS EC2 Instances: Set SG groups for {{ include_item.product }}"
+#   local_ec2_group_set:
+#     ec2_id: "{{ aws_ec2_instances_result.tagged_instances.0.id }}"
+#     group_ids: "{{ aws_ec2_sg_list }}"
+#     region: "{{ aws_common_region }}"
+#   when: not ansible_check_mode
+
+
+# - name: "AWS EC2 Instances: Create and add volumes for {{ include_item.name }}"
+#   local_ec2_vol:
+#     instance: "{{ aws_ec2_instances_result.tagged_instances.0.id }}"
+#     volume_size: "{{ item.volume_size }}"
+#     device_name: "{{ item.device_name }}"
+#     encrypted: yes
+#     kms_key_id: "{{ aws_common_kms_volume_key['key']['arn'] }}"
+#     volume_type: gp2
+#     state: present
+#     name: "{{ include_item.product }}::{{ item.device_name }}::{{ aws_ec2_instances_result.tagged_instances.0.id }}"
+#     # todo: fix volume tags
+#     tags: "{{ aws_volume_tags | combine({'Name': include_item.name + ' ' + item.device_name + ' volume' }) }}"
+#   with_items: "{{ include_item['volumes'] | default([]) }}"
+#   when: not ansible_check_mode
+
+
+# - include: aws-ec2-alarms.yml
+
+
+# - include: aws-ec2-dns.yml
+

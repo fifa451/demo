@@ -1,0 +1,17 @@
+---
+
+# tasks file for aws-security-groups
+
+- include_tasks: roles/aws-common/tasks/aws-vpc-facts.yml
+
+
+# first loop through and create a shell of each security group with no rules if it does not exist
+# - this ensures that any security groups dependencies do not cause the script to break if the
+#   dependent security group does not yet exist
+- include_tasks: aws-security-groups-create.yml
+  with_items: "{{ aws_security_groups }}"
+
+
+# apply all rules to the security groups
+- include_tasks: aws-security-groups.yml
+  with_items: "{{ aws_security_groups }}"

@@ -8,4 +8,4 @@
     region: "{{ aws_common_region }}"
     state: present
   register: aws_common_igw_facts
-  when: aws_common_igw_facts ==''
+  when: aws_common_igw_facts is not defined

@@ -1,0 +1,14 @@
+---
+
+- name: "AWS Security Groups: Create an EMPTY SG if it does not exist {{ item.name }}"
+  ec2_group:
+    state: present
+    vpc_id: "{{ aws_common_vpc_facts.id }}"
+    region: "{{ aws_common_region }}"
+    name: "{{ item.name }}"
+    description: "{{ item.name }}"
+    purge_rules: false
+    purge_rules_egress: false
+#  register: aws_security_group_result
+  # when: item.name == aws_security_group_filter or aws_security_group_filter == "all"
+

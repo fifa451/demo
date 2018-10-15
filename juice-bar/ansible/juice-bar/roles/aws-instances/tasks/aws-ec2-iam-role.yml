@@ -1,0 +1,19 @@
+---
+
+- name: "AWS EC2 IAM Role: Create IAM role ({{ aws_common_inventory }}-ec2-{{ include_item.product }})"
+  iam:
+    iam_type: "role"
+    name: "{{ aws_common_inventory }}-ec2-{{ include_item.product }}"
+    state: "present"
+  register: aws_ec2_instances_iam_role
+
+- name: "AWS EC2 IAM Role: Wait for role to propogate within AWS"
+  pause:
+    seconds: 10
+  when: aws_ec2_instances_iam_role.changed
+
+- name: "AWS EC2 Instances: Obtain details of iam role"
+  iam_role_facts:
+    name: "{{ aws_common_inventory }}-ec2-{{ include_item.product }}"
+  register: aws_ec2_instances_role
+  check_mode: no

@@ -1,0 +1,4 @@
+---
+# tasks file for aws-vpc-peering
+
+- include_tasks: aws-vpc-peering.yml

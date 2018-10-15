@@ -3,7 +3,7 @@
 - include_tasks: roles/aws-common/tasks/aws-vpc-facts.yml
 
 - debug:
-  msg: "{{ aws_subnets }}"
+    msg: "{{ aws_subnets }}"
 
 - include_tasks: aws-subnets.yml
   loop: "{{ aws_subnets }}"

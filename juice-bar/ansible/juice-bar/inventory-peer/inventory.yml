@@ -4,3 +4,12 @@ aws_vpc ansible_connection=local
 
 [aws-subnets]
 aws_subnets ansible_connection=local
+
+[aws-vpc-peering]
+aws_vpc_peering ansible_connection=local
+
+[aws-igw]
+aws_igw ansible_connection=local
+
+[aws-route-tables]
+aws_route_tables ansible_connection=local

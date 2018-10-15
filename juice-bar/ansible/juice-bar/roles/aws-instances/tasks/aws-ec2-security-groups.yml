@@ -1,0 +1,41 @@
+---
+
+- debug:
+    msg: "{{ include_item.security_groups.0 }}"
+
+
+- name: "AWS EC2 Security Groups: Lookup security groups"
+  ec2_group_facts:
+    filters:
+      "tag:Name": "{{ include_item.security_groups }}"
+    region: "{{ aws_common_region }}"
+  register: aws_ec2_sg_results
+  check_mode: no
+
+- debug: var=aws_ec2_sg_results
+
+- name: "AWS EC2 Security Groups: Build security group list"
+  set_fact:
+    aws_ec2_sg_list: "{{ aws_ec2_sg_results.security_groups | map(attribute='group_id') | list }}"
+  check_mode: no
+
+
+# - name: "AWS EC2 Security Groups: Get Default Security Group Details"
+#   local_ec2_group_facts:
+#     filters:
+#       "tag:Name": "{{ aws_common_inventory }}-default"
+#       group-name: "default"
+#   register: aws_ec2_sg_results
+#   check_mode: no
+
+
+# - debug: var=aws_ec2_sg_results
+
+
+# - debug: var=aws_ec2_sg_list
+
+
+# - name: "AWS EC2 Security Groups: Apply or Reset security groups"
+#   set_fact:
+#     aws_ec2_sg_list: "['{{ aws_ec2_sg_results.security_groups.0.group_id }}']"
+#   check_mode: no

@@ -1,0 +1,10 @@
+---
+
+- name: "AWS EC2 AMI Selection: Check OS Selection for {{ include_item.os }}, {{ include_item.product }}"
+  fail: msg="Bailing out. This play requires a valid os selection"
+  when: aws_ec2_instances_ami_map[include_item.os] is not defined
+
+
+- name: "AWS EC2 AMI Selection: Set source ami"
+  set_fact:
+    aws_ec2_ami_selection: "{{ aws_ec2_instances_ami_map[include_item.os].ami_id }}"

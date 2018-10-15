@@ -1,0 +1,15 @@
+---
+
+- name: "AWS EC2 Subnet: Lookup subnet"
+  ec2_vpc_subnet_facts:
+    filters:
+      "tag:Name": "{{ include_item.subnet }}"
+      "tag:Ansible": "Ansible"
+      "tag:ENV": "{{ aws_common_inventory }}"
+  register: aws_ec2_instances_subnet
+  check_mode: no
+
+- name: "AWS EC2 Subnet: Set subnet fact"
+  set_fact:
+    aws_ec2_instances_subnet: "{{ aws_ec2_instances_subnet.subnets.0.id }}"
+  check_mode: no

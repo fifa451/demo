@@ -1,0 +1,10 @@
+---
+
+- name: "AWS EC2 Key: Ensure key is present"
+  ec2_key:
+    name: "{{ aws_ec2_instances_key_name }}"
+    key_material: "{{ item }}"
+    state: present
+  with_file: "ec2_key.pub"
+  no_log: true
+

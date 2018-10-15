@@ -1,0 +1,34 @@
+---
+
+# Optionally add a DNS record for this instance
+- name: "AWS EC2 DNS: Register in DNS Zone ({{ include_item.dns + '.ec2.' + aws_common_dns_zone }})"
+  route53:
+    command: "create"
+    zone: "{{ aws_common_dns_zone }}"
+    record: "{{ include_item.dns + '.ec2.' + aws_common_dns_zone }}"
+    type: "CNAME"
+    ttl: "60"
+    value: "{{ aws_ec2_instances_result.tagged_instances.0.private_dns_name }}"
+    private_zone: true
+    vpc_id: "{{ aws_common_vpc_facts.id }}"
+    overwrite: yes
+  when: include_item.dns is defined
+
+- name: "AWS EC2 DNS: Store DNS in Tag"
+  ec2_tag:
+    region: "{{ aws_common_region }}"
+    resource: "{{ aws_ec2_instances_result.tagged_instances.0.id }}"
+    state: present
+    tags:
+      DNS: "{{ include_item.dns + '.ec2.' + aws_common_dns_zone }}"
+  when: include_item.dns is defined
+
+- name: "AWS EC2 DNS: Remove DNS from Tag"
+  ec2_tag:
+    region: "{{ aws_common_region }}"
+    resource: "{{ aws_ec2_instances_result.tagged_instances.0.id }}"
+    state: absent
+    tags:
+      DNS:
+  when: include_item.dns is not defined and not ansible_check_mode
+

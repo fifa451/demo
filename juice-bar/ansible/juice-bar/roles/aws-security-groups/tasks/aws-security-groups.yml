@@ -1,0 +1,28 @@
+---
+
+- name: "AWS Security Groups: Create {{ item.name }} security group"
+  ec2_group:
+    state: present
+    vpc_id: "{{ aws_common_vpc_facts.id }}"
+    region: "{{ aws_common_region }}"
+    name: "{{ item.name }}"
+    description: "{{ item.name }}"
+    purge_rules: true
+    purge_rules_egress: true
+    rules: "{{ item.rules }}"
+    rules_egress:
+      - proto: all
+        cidr_ip: 0.0.0.0/0
+  register: aws_security_group_result
+  # when: item.name == aws_security_group_filter or aws_security_group_filter == "all"
+
+
+- name: "AWS Security Groups: Tag Security Group"
+  ec2_tag:
+    resource: "{{ aws_security_group_result.group_id }}"
+    tags:
+      Name: "{{ item.name }}"
+      Ansible: "Ansible"
+      ENV: "{{ aws_common_inventory }}"
+      PRODUCT: "{{ item.tag.product }}"
+  # when: item.name == aws_security_group_filter or aws_security_group_filter == "all"

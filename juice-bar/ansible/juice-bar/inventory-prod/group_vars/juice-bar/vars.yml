@@ -1,0 +1,14 @@
+---
+aws_ec2_instances:
+
+  - name: 'PROD-juice-bar-a'
+    subnet: 'PROD-public-a'
+    az: 'A'                         # Must be in capitals
+    product: 'juice-bar'                   # refers to the Product code, CS, LM, HD, DO
+    security_groups:                # by default always include the security group that matches the role name
+      - 'PROD-juice-bar'
+    os: 'ubuntu_16'
+    count: 1                        # will create this many instances in this subnet/AZ
+    primary_hdd_size: 10           # HDD in GB (SSD)
+    instance_type: 't2.nano'
+    assign_public_ip: yes            # can be 'yes', 'no' or the elastic ip that we've already reserverd

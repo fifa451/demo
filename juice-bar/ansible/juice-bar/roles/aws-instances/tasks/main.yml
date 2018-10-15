@@ -1,0 +1,47 @@
+---
+# tasks file for aws-ec2-instances
+
+- include_tasks: roles/aws-common/tasks/aws-vpc-facts.yml
+  tags:
+    - 'aws-ec2-instances'
+
+# - include_tasks: roles/aws-common/tasks/aws-sns.yml
+#   tags:
+#     - 'aws-ec2-instances'
+
+# - include: roles/aws-common/tasks/aws-kms.yml
+#   tags:
+#     - 'aws-ec2-instances'
+
+# - include_tasks: aws-ec2-key.yml
+#   tags:
+#    - 'aws-ec2-instances'
+
+###
+# Generate required number of ec2 instances from template
+# To generate 5 ec2s, ansible-playbook -e "ec2_count=5" aws.yml
+###
+- name: "Create builk Ec2s from templates "
+  block:
+
+    - set_fact:
+        ec2_count: '{{ ec2_count|default("1")|int}}'
+
+    - include: aws-ec2-instances-bulk-build.yml
+      loop_control:
+        loop_var: ec2_count_down
+      with_sequence: start=1 stride=3 end={{ ec2_count }}
+  # when: aws_ec2_instances_templates is defined
+  tags:
+    - 'aws-ec2-instances'
+
+# - include: aws-ec2-instances.yml
+#   with_items: "{{ aws_ec2_instances }}"
+#   loop_control:
+#     loop_var: include_item
+#   tags:
+#     - 'aws-ec2-instances'
+#   when: >
+#     includ_item != "" and
+#     include_item.role == aws_instance_group_filter or
+#     aws_instance_group_filter == "all"

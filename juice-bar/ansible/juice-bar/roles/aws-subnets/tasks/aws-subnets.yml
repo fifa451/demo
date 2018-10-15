@@ -13,3 +13,4 @@
       ENV: "{{ aws_common_inventory }}"
       REGION: "{{ aws_common_region }}"
       AZ: "{{ item.tag_az }}"
+      TYPE: "{{ item.subnet_type }}"

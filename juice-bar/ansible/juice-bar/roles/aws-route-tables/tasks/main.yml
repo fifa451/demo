@@ -1,2 +1,9 @@
 ---
 # tasks file for aws-route-tables
+- include_tasks: roles/aws-common/tasks/aws-vpc-facts.yml
+
+- include_tasks: roles/aws-common/tasks/aws-igw-facts.yml
+
+- include_tasks: roles/aws-common/tasks/aws-route-table-facts.yml
+
+- include_tasks: aws-route-tables.yml

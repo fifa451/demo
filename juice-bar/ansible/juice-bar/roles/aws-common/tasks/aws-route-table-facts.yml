@@ -1,0 +1,15 @@
+---
+- name: "AWS Route table facts: Get all facts"
+  ec2_vpc_route_table_facts:
+    filters:
+      "tag:Name": "{{ aws_common_inventory }}"
+  register: aws_vpc_route_table_results
+
+
+- debug:
+    msg: "{{ aws_vpc_route_table_results.route_tables|json_query('[].routes')}}"
+
+
+- name: "AWS Route table facts: Set {{ aws_common_inventory }} routes"
+  set_fact:
+    aws_vpc_route_table: "{{ aws_vpc_route_table_results.route_tables|json_query('[].routes')}}"

@@ -1,0 +1,68 @@
+---
+
+
+
+- name: "Generate EC2 vars"
+  block:
+  - set_fact:
+      ec2_count_down_a: "{{ ec2_count_down|int }}"
+      ec2_count_down_b: "{{ ec2_count_down|int + 1}}"
+      ec2_count_down_c: "{{ ec2_count_down|int + 2}}"
+
+# set zone a
+  - name: "Generate A Zone ec2"
+    set_fact:
+      ec2_zone_a:
+        - "{{ item |default('None')}}"
+    when: >
+       item.subnet |search("private-a") and
+       ec2_count_down_a <= ec2_count
+    loop_control:
+      loop_var:
+    with_items: "{{ aws_ec2_instances_templates }}"
+
+
+  # set zone b
+  - name: "Generate B Zone ec2"
+    set_fact:
+      ec2_zone_b:
+        - "{{ item |default('None')}}"
+    when:
+      - (item.subnet |search("private-b") )
+      - ec2_count_down_b <= ec2_count
+    loop_control:
+      loop_var:
+    with_items: "{{ aws_ec2_instances_templates }}"
+
+
+  # set zone c
+  - name: "Generate C Zone ec2"
+    set_fact:
+      ec2_zone_c:
+        - "{{ item|default('None') }}"
+    when: >
+      item.subnet |search("private-c") and
+      ec2_count_down_c <= ec2_count
+    loop_control:
+      loop_var:
+    with_items: "{{ aws_ec2_instances_templates }}"
+
+  # combine of zone a,b,c
+  - set_fact:
+      aws_ec2_instances:
+        - "{{ ec2_zone_a |default([])}}"
+        - "{{ ec2_zone_b |default([])}}"
+        - "{{ ec2_zone_c |default([])}}"
+  when: aws_ec2_instances_templates is defined
+
+
+- include: aws-ec2-instances.yml
+  with_items: "{{ aws_ec2_instances }}"
+  loop_control:
+    loop_var: include_item
+  tags:
+    - 'aws-ec2-instances'
+  when:
+    -  include_item != ""
+    # -  (include_item.role == aws_instance_group_filter or aws_instance_group_filter == "all")
+
