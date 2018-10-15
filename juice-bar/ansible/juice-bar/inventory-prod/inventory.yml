@@ -16,3 +16,7 @@ aws_security_groups ansible_connection=local
 
 [juice-bar]
 juice_bar ansible_connection=local
+
+
+[aws-network-infra]
+aws_network_infra ansible_connection=local

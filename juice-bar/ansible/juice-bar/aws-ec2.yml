@@ -1,0 +1,45 @@
+---
+
+- name: "AWS EC2 Instances: Create EC2 instance"
+  gather_facts: no
+
+  hosts: localhost
+  vars:
+    aws_common_inventory: PROD
+    product: juice-bar
+    aws_ec2_instances_key_name: rchen-key
+    instance_type: t2.nano
+    image_id: ami-0789a5fb42dcccc10
+    aws_ec2_sg_list: PROD-juice-bar
+    aws_ec2_instances_subnet: subnet-0443c54e660c05c86
+    aws_common_region: ap-southeast-2
+  tasks:
+    - name: "Create EC2"
+      ec2:
+        key_name: "{{ aws_ec2_instances_key_name }}"
+        instance_type: "{{ instance_type }}"
+        image: "{{ image_id }}"
+        exact_count: "1"
+        wait: yes
+        wait_timeout: 500
+        vpc_subnet_id: "{{ aws_ec2_instances_subnet }}"
+        assign_public_ip: "yes"
+        count_tag:
+          CountTag: "{{ aws_ec2_instances_subnet }}"
+        group: "{{ aws_ec2_sg_list }}"
+        instance_profile_name: "{{ aws_common_inventory }}-ec2-{{ product }}"
+        user_data: |
+          #!/bin/bash
+          apt-get update
+          apt-get install -y python python-simplejson
+        volumes:
+          - device_name: /dev/sda1
+            volume_type: gp2
+            volume_size: "10"
+        region: "{{ aws_common_region }}"
+        instance_tags:
+          Name: "{{ aws_common_inventory }}-{{ product }}"
+          Ansible: Ansible
+          ENV: "{{ aws_common_inventory }}"
+          REGION: "{{ aws_common_region }}"
+          PRODUCT: "{{ product }}"

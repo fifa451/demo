@@ -8,6 +8,8 @@ aws_subnets ansible_connection=local
 [aws-igw]
 aws_igw ansible_connection=local
 
-
 [aws-route-tables]
 aws_route_tables ansible_connection=local
+
+[aws-network-infra]
+aws_network_infra ansible_connection=local
