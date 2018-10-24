@@ -6,11 +6,11 @@
   hosts: localhost
   vars:
     aws_common_inventory: PROD
-    product: juice-bar
+    product: juice-shop
     aws_ec2_instances_key_name: rchen-key
     instance_type: t2.nano
     image_id: ami-0789a5fb42dcccc10
-    aws_ec2_sg_list: PROD-juice-bar
+    aws_ec2_sg_list: PROD-juice-shop
     aws_ec2_instances_subnet: subnet-0443c54e660c05c86
     aws_common_region: ap-southeast-2
   tasks:

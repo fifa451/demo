@@ -1,0 +1,129 @@
+- name: "Install Juice shop"
+  hosts: all
+  become: true
+  # gather_facts: False
+  ### make sure python is installed
+  vars:
+    NODEJS_VERSION: 9
+    # ansible_distribution_release: xinel
+    required_pkgs:
+      - git
+      - nginx
+    ansible_ssh_user: ubuntu
+    app_name: juice-shop
+    app_dir: /var/sites
+    app_git_repo: https://github.com/bkimminich/juice-shop.git
+    app_local_dir: "{{ app_name }}/{{ app_name }}"
+    app_version: "7.5.1"
+    app_url: https://github.com/bkimminich/juice-shop/releases/download/v{{ app_version }}/juice-shop-{{ app_version }}_node9_linux_x64.tgz
+    default_nginx_ena_conf: /etc/nginx/sites-enabled/default
+    app_nginx_ava_conf: /etc/nginx/sites-available/juice-shop.conf
+    app_nginx_ena_conf: /etc/nginx/sites-enabled/juice-shop.conf
+
+  pre_tasks:
+    - name: Install python for Ansible
+      raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+      register: output
+      changed_when: output.stdout != ""
+      tags: always
+  tasks:
+    - name: Install the gpg key for nodejs LTS
+      apt_key:
+        url: "https://deb.nodesource.com/gpgkey/nodesource.gpg.key"
+        state: present
+
+
+    - name: Install the nodejs LTS repos
+      apt_repository:
+        repo: "deb https://deb.nodesource.com/node_{{ NODEJS_VERSION }}.x {{ ansible_distribution_release }} main"
+        state: present
+        update_cache: yes
+
+
+    - name: "Install required pkgs"
+      apt:
+        name: "{{ item }}"
+        state: present
+      loop: "{{ required_pkgs }}"
+
+
+    - name: "Configure: Setup juice shop dir"
+      file:
+        path: "{{ app_dir }}"
+        state: directory
+        owner: ubuntu
+        group: ubuntu
+
+
+    # - name: "Configure: download juice shop repository"
+    #   git:
+    #     dest: "{{ app_dir }}/{{ app_name }}"
+    #     repo: "{{ app_git_repo }}"
+    #     clone: yes
+    #     update: yes
+    #     version: v7.5.1
+    #   become_user: ubuntu
+
+    - name: "Download files"
+      get_url:
+        url: "{{ app_url }}"
+        dest: "{{ app_dir }}/{{app_name}}_{{ app_version }}.tgz"
+      become_user: ubuntu
+
+    - name: "Unarchive"
+      unarchive:
+        src: "{{ app_dir }}/{{app_name}}_{{ app_version }}.tgz"
+        dest: "{{ app_dir }}"
+        remote_src: yes
+      become_user: ubuntu
+
+    # - name: "Deploy: juice shop"
+    #   command: npm install
+    #   chdir: "{{ app_dir }}/{{app_name }}"
+    #   become_user: ubuntu
+
+    - name: "start app: juice shop"
+      shell: npm start &
+      args:
+        chdir: "{{ app_dir }}/{{app_name }}_{{ app_version }}"
+      become_user: ubuntu
+
+    - name: "Setup Ngnix Revers proxy"
+      copy:
+        dest: "{{ app_nginx_ava_conf }}"
+        content: |
+          server {
+            listen *:80;
+            server_name _;
+            location / {
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_pass http://localhost:3000;
+            }
+          }
+      register:  app_nginx_conf_changed
+      tags: nginx
+
+
+    - name: "Enable nginx"
+      file:
+        src: "{{ app_nginx_ava_conf }}"
+        dest: "{{ app_nginx_ena_conf }}"
+        state: link
+      tags: nginx
+
+
+    - name: "disable Default"
+      file:
+        path: "{{ default_nginx_ena_conf }}"
+        state: absent
+      register: default_nginx_conf_changed
+      tags: nginx
+
+    - name: "Restart nginx"
+      systemd:
+         name: nginx
+         state: reloaded
+      tags: nginx
+
+
