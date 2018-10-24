@@ -72,6 +72,7 @@ The demo Subnets for each VPCs name are
 The port 22 is for remote ssh
 ```
 **Ingress Rules**
+
 | Name        | Ingress   | Port |
 | ----------- | --------- | ---- |
 | web-traffic | 0.0.0.0/0 | 22   |
@@ -79,6 +80,7 @@ The port 22 is for remote ssh
 
 
 **Egress Rules**
+
 | Name    | Egress    | Port |
 | ------- | --------- | ---- |
 | all-all | 0.0.0.0/0 | all  |
