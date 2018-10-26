@@ -9,6 +9,7 @@ The juice shop app is a nodejs app from  [OWASP Juice shop](https://github.com/b
 ## Basic AWS structure
 
 ### Networks
+![AWS Diagram](Demo-Network.jpg)
 
 #### VPC
 There are three VPC included:
