@@ -85,13 +85,6 @@
     #   become_user: ubuntu
 
 
-    - name: "Start app: udpate script permission"
-      file:
-        path: "{{ app_dir }}/{{app_name }}_{{ app_version }}/start.sh"
-        mode: 0755
-      tags: start_app
-
-
     - name: "start app: juice shop {{ app_dir }}/{{app_name }}_{{ app_version }} "
       shell: nohup node app.js >/dev/null 2>&1 &
       args:
