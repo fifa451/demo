@@ -1,0 +1,85 @@
+---
+
+
+
+
+
+- name: "AWS EC2 Instances: Create EC2 instance"
+  gather_facts: no
+  hosts: localhost
+  vars:
+    aws_common_inventory: PROD
+    aws_common_region: "ap-southeast-2"
+    aws_vpc_cidr: '10.1.0.0/16'
+    aws_vpc_name: "{{ aws_common_inventory | upper }}"
+  tasks:
+    ### Get VPC id
+    - name: "AWS VPC Facts: Get VPC Facts"
+      ec2_vpc_net_facts:
+        region: "{{ aws_common_region }}"
+        filters:
+          "tag:Name": "{{ aws_vpc_name }}"
+      register: aws_common_vpc_results
+      when: aws_common_vpc_facts is not defined
+      check_mode: no
+
+    - name: "AWS VPC Facts: Resolve VPC Data"
+      set_fact:
+        aws_common_vpc_facts: "{{ aws_common_vpc_results.vpcs.0 }}"
+      when: aws_common_vpc_facts is not defined
+      check_mode: no
+
+    ### get Internet Gateway
+    - name: "AWS IGW Facts: Get the IGW facts"
+      ec2_vpc_igw:
+        vpc_id: "{{ aws_common_vpc_facts.id }}"
+        region: "{{ aws_common_region }}"
+        state: present
+      register: aws_common_igw_facts
+      when: aws_common_igw_facts is not defined
+
+    ### get Route table IDs
+    - name: "AWS Route table facts: Get all facts"
+      ec2_vpc_route_table_facts:
+        filters:
+          "tag:Name": "{{ aws_common_inventory }}"
+        region: "{{ aws_common_region }}"
+      register: aws_vpc_route_table_results
+
+
+    - name: "AWS Route table facts: Set {{ aws_common_inventory }} routes"
+      set_fact:
+        aws_vpc_route_table: "{{ aws_vpc_route_table_results.route_tables|json_query('[].routes')}}"
+    - name: "AWS Route Tables: Build routes"
+      set_fact:
+        aws_route_tables_routes:
+          - dest: "{{ aws_common_vpc_facts.cidr_block }}"
+            gateway_id: local
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ aws_common_igw_facts.gateway_id }}"
+
+
+    - name: "Get all {{ aws_common_inventory }} subnet id "
+      ec2_vpc_subnet_facts:
+        filters:
+          "tag:TYPE": public
+      register: aws_subnets_results
+
+
+    - name: "AWS Route Talbes: GET  Subnet"
+      set_fact:
+        aws_route_tables_public_subnets: "{{ aws_subnets_results.subnets|json_query('[].subnet_id')}}"
+
+
+    - name: "AWS Route Tables: Public route table association"
+      ec2_vpc_route_table:
+        vpc_id: "{{ aws_common_vpc_facts.id }}"
+        region: "{{ aws_common_region }}"
+        subnets: "{{ aws_route_tables_public_subnets }}"
+        routes: "{{ aws_route_tables_routes }}"
+        tags:
+          Name: "{{ aws_vpc_name }}-route-table"
+          Ansible: "Ansible"
+          Inventory: "{{ aws_common_inventory }}"
+          ENV: "{{ aws_common_inventory }}"
+          REGION: "{{ aws_common_region }}"

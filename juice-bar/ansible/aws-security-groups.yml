@@ -1,0 +1,88 @@
+- name: "AWS EC2 Instances: Create EC2 instance"
+  gather_facts: no
+  hosts: localhost
+  vars:
+    aws_common_inventory: PROD
+    aws_common_region: "ap-southeast-2"
+    aws_vpc_cidr: '10.1.0.0/16'
+    aws_vpc_name: "{{ aws_common_inventory | upper }}"
+
+    aws_security_groups:
+      - name: PROD-juice-shop
+        tag:
+          ENV: PROD
+          product: juice-shop
+        rules:
+          - proto: tcp
+            from_port: 80
+            to_port: 80
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 443
+            to_port: 443
+            cidr_ip: 0.0.0.0/0
+          - proto: tcp
+            from_port: 22
+            to_port: 22
+            cidr_ip: 0.0.0.0/0
+  tasks:
+    ### Get VPC id
+    - name: "AWS VPC Facts: Get VPC Facts"
+      ec2_vpc_net_facts:
+        region: "{{ aws_common_region }}"
+        filters:
+          "tag:Name": "{{ aws_vpc_name }}"
+      register: aws_common_vpc_results
+      when: aws_common_vpc_facts is not defined
+      check_mode: no
+
+    - name: "AWS VPC Facts: Resolve VPC Data"
+      set_fact:
+        aws_common_vpc_facts: "{{ aws_common_vpc_results.vpcs.0 }}"
+      when: aws_common_vpc_facts is not defined
+      check_mode: no
+
+
+    - name: "AWS Security Groups: Create an EMPTY SG if it does not exist {{ item.name }}"
+      ec2_group:
+        state: present
+        vpc_id: "{{ aws_common_vpc_facts.id }}"
+        region: "{{ aws_common_region }}"
+        name: "{{ item.name }}"
+        description: "{{ item.name }}"
+        purge_rules: false
+        purge_rules_egress: false
+      loop: "{{ aws_security_groups }}"
+
+
+    - name: "AWS Security Groups: Create {{ item.name }} security group"
+      ec2_group:
+        state: present
+        vpc_id: "{{ aws_common_vpc_facts.id }}"
+        region: "{{ aws_common_region }}"
+        name: "{{ item.name }}"
+        description: "{{ item.name }}"
+        purge_rules: true
+        purge_rules_egress: true
+        rules: "{{ item.rules }}"
+        rules_egress:
+          - proto: all
+            cidr_ip: 0.0.0.0/0
+        tags:
+          Name: "{{ item.name }}"
+          Ansible: "Ansible"
+          ENV: "{{ aws_common_inventory }}"
+          PRODUCT: "{{ item.tag.product }}"
+      register: aws_security_group_result
+      loop: "{{ aws_security_groups }}"
+
+
+    # - name: "AWS Security Groups: Tag Security Group"
+    #   ec2_tag:
+    #     resource: "{{ aws_security_group_result.group_id }}"
+    #     tags:
+    #       Name: "{{ item.name }}"
+    #       Ansible: "Ansible"
+    #       ENV: "{{ aws_common_inventory }}"
+    #       PRODUCT: "{{ item.tag.product }}"
+    #   loop: "{{ aws_security_groups }}"

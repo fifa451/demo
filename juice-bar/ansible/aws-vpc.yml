@@ -1,0 +1,28 @@
+---
+- name: "AWS: Create VPS"
+  gather_facts: no
+  hosts: localhost
+  vars:
+    aws_common_inventory: PROD
+    aws_common_region: "ap-southeast-2"
+    aws_vpc_cidr: '10.1.0.0/16'
+    aws_vpc_name: "{{ aws_common_inventory | upper }}"
+    tags:
+      Name: "{{ aws_vpc_name }}"
+      Ansible: "Ansible"
+      ENV: "{{ aws_common_inventory }}"
+      REGION: "{{ aws_common_region }}"
+  tasks:
+    - name: "AWS VPC: Create VPC and Subnet"
+      ec2_vpc_net:
+        state: present
+        name: "{{ aws_vpc_name }}"
+        cidr_block: "{{ aws_vpc_cidr }}"
+        region: "{{ aws_common_region }}"
+        multi_ok: no
+        tags:
+          Name: "{{ aws_vpc_name }}"
+          Ansible: "Ansible"
+          ENV: "{{ aws_common_inventory }}"
+          REGION: "{{ aws_common_region }}"
+      register: aws_vpc_facts

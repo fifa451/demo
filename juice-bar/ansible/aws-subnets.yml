@@ -1,0 +1,82 @@
+---
+- name: "AWS EC2 Instances: Create EC2 instance"
+  gather_facts: no
+  hosts: localhost
+  vars:
+    aws_common_inventory: PROD
+    aws_common_region: "ap-southeast-2"
+    aws_vpc_cidr: '10.1.0.0/16'
+    aws_vpc_name: "{{ aws_common_inventory | upper }}"
+    # PROD vpc 10.1.0.0/16
+    aws_subnets:
+      ### public, 0,100,200
+      - name: PROD-public-a
+        cidr: 10.1.0.0/24
+        az: ap-southeast-2a
+        tag_az: A
+        subnet_type: public
+
+      - name: PROD-public-b
+        cidr: 10.1.100.0/24
+        az: ap-southeast-2b
+        tag_az: B
+        subnet_type: public
+
+      - name: PROD-public-c
+        cidr: 10.1.200.0/24
+        az: ap-southeast-2c
+        tag_az: C
+        subnet_type: public
+
+      ###private, 1,101,201
+      - name: PROD-private-a
+        cidr: 10.1.1.0/24
+        az: ap-southeast-2a
+        tag_az: A
+        subnet_type: private
+
+      - name: PROD-private-b
+        cidr: 10.1.101.0/24
+        az: ap-southeast-2b
+        tag_az: B
+        subnet_type: private
+
+      - name: PROD-private-c
+        cidr: 10.1.201.0/24
+        az: ap-southeast-2c
+        tag_az: C
+        subnet_type: private
+
+  tasks:
+    ### Get VPC id
+    - name: "AWS VPC Facts: Get VPC Facts"
+      ec2_vpc_net_facts:
+        region: "{{ aws_common_region }}"
+        filters:
+          "tag:Name": "{{ aws_vpc_name }}"
+      register: aws_common_vpc_results
+      when: aws_common_vpc_facts is not defined
+      check_mode: no
+
+    - name: "AWS VPC Facts: Resolve VPC Data"
+      set_fact:
+        aws_common_vpc_facts: "{{ aws_common_vpc_results.vpcs.0 }}"
+      when: aws_common_vpc_facts is not defined
+      check_mode: no
+
+
+    - name: "AWS Subnets: Create {{ item.name }} subnet"
+      ec2_vpc_subnet:
+        state: present
+        vpc_id: "{{ aws_common_vpc_facts.id }}"
+        cidr: "{{ item.cidr }}"
+        region: "{{ aws_common_region }}"
+        az: "{{ item.az }}"
+        resource_tags:
+          Name: "{{ item.name }}"
+          Ansible: "Ansible"
+          ENV: "{{ aws_common_inventory }}"
+          REGION: "{{ aws_common_region }}"
+          AZ: "{{ item.tag_az }}"
+          TYPE: "{{ item.subnet_type }}"
+      loop: "{{ aws_subnets }}"

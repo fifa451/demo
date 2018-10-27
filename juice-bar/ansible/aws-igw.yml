@@ -1,0 +1,44 @@
+- name: "AWS EC2 Instances: Create EC2 instance"
+  gather_facts: no
+  hosts: localhost
+  vars:
+    aws_common_inventory: PROD
+    aws_common_region: "ap-southeast-2"
+    aws_vpc_cidr: '10.1.0.0/16'
+    aws_vpc_name: "{{ aws_common_inventory | upper }}"
+  tasks:
+    ### Get VPC id
+    - name: "AWS VPC Facts: Get VPC Facts"
+      ec2_vpc_net_facts:
+        region: "{{ aws_common_region }}"
+        filters:
+          "tag:Name": "{{ aws_vpc_name }}"
+      register: aws_common_vpc_results
+      when: aws_common_vpc_facts is not defined
+      check_mode: no
+
+
+    - name: "AWS VPC Facts: Resolve VPC Data"
+      set_fact:
+        aws_common_vpc_facts: "{{ aws_common_vpc_results.vpcs.0 }}"
+      when: aws_common_vpc_facts is not defined
+      check_mode: no
+
+    ### create gateway
+    - name: "AWS IGW: create igw"
+      ec2_vpc_igw:
+        vpc_id: "{{ aws_common_vpc_facts.id }}"
+        region: "{{ aws_common_region }}"
+        state: present
+      register: aws_igw
+
+
+    - name: "AWS IGW: Name the new internet gateway created"
+      ec2_tag:
+        resource: "{{ aws_igw.gateway_id }}"
+        state: present
+        region: "{{ aws_common_region }}"
+        tags:
+          Name: "{{ aws_vpc_name }} gateway"
+          Ansible: "Ansible"
+          Inventory: "{{ aws_common_inventory }}"
