@@ -1,10 +1,10 @@
 ---
 
 aws_security_groups:
-  - name: PROD-juice-bar
+  - name: PROD-juice-shop
     tag:
       ENV: PROD
-      product: juice-bar
+      product: juice-shop
     rules:
       - proto: tcp
         from_port: 80

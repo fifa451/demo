@@ -3,7 +3,7 @@
 - name: "Get all {{ aws_common_inventory }} subnet id "
   ec2_vpc_subnet_facts:
     filters:
-      "tag:ENV": "{{ aws_common_inventory }}"
+      "tag:TYPE": public
   register: aws_subnets_results
 
 

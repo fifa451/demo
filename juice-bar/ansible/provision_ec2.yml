@@ -11,7 +11,7 @@
     instance_type: t2.nano
     image_id: ami-0789a5fb42dcccc10
     aws_ec2_sg_list: PROD-juice-shop
-    aws_ec2_instances_subnet: subnet-0443c54e660c05c86
+    aws_ec2_instances_subnet: subnet-0b7e7786f8cea8038
     aws_common_region: ap-southeast-2
   tasks:
     - name: "Create EC2"
@@ -27,7 +27,7 @@
         count_tag:
           CountTag: "{{ aws_ec2_instances_subnet }}"
         group: "{{ aws_ec2_sg_list }}"
-        instance_profile_name: "{{ aws_common_inventory }}-ec2-{{ product }}"
+        # instance_profile_name: "{{ aws_common_inventory }}-ec2-{{ product }}"
         user_data: |
           #!/bin/bash
           apt-get update

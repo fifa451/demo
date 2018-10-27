@@ -5,10 +5,10 @@
   ### make sure python is installed
   vars:
     NODEJS_VERSION: 9
-    # ansible_distribution_release: xinel
     required_pkgs:
       - git
       - nginx
+      - nodejs
     ansible_ssh_user: ubuntu
     app_name: juice-shop
     app_dir: /var/sites
@@ -26,6 +26,8 @@
       register: output
       changed_when: output.stdout != ""
       tags: always
+### main tasks
+# install packages
   tasks:
     - name: Install the gpg key for nodejs LTS
       apt_key:
@@ -82,11 +84,22 @@
     #   chdir: "{{ app_dir }}/{{app_name }}"
     #   become_user: ubuntu
 
-    - name: "start app: juice shop"
-      shell: npm start &
+
+    - name: "Start app: udpate script permission"
+      file:
+        path: "{{ app_dir }}/{{app_name }}_{{ app_version }}/start.sh"
+        mode: 0755
+      tags: start_app
+
+
+    - name: "start app: juice shop {{ app_dir }}/{{app_name }}_{{ app_version }} "
+      shell: nohup node app.js >/dev/null 2>&1 &
       args:
         chdir: "{{ app_dir }}/{{app_name }}_{{ app_version }}"
       become_user: ubuntu
+      async: 10
+      poll: 5
+      tags: start_app
 
     - name: "Setup Ngnix Revers proxy"
       copy:
