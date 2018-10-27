@@ -63,6 +63,11 @@ The demo Subnets for each VPCs name are
 
 #### Route tables
 
+| Destination | Target |
+| ----------- | ------ |
+| 10.1.0.0/16 | local  |
+| 0.0.0.0/0   | IGW    |
+
 ## EC2
 
 ## Size
